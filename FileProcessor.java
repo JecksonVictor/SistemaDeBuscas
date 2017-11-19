@@ -21,21 +21,47 @@ public class FileProcessor
      */
     public FileProcessor(){
         badWords = new BlackList();
+        loadBlackList();
+    }
+    
+    public void loadFile(String fileName){
+        try{
+            BufferedReader file = new BufferedReader(new FileReader(fileName));
+            String line = file.readLine();
+            int numLine = 1;
+            
+            while(line != null){
+                String [] words = line.split(" ");
+                
+                for(String word : words){
+                    if(!badWords.contains(word) && !word.equals("")){
+                        WordProcessor processor = new WordProcessor(word);
+                        System.out.println(fileName + ": " + processor.prepareWord() + " - linha: " + numLine);
+                    }
+                }
+                line = file.readLine();
+                numLine++;
+            }
+            file.close();
+        }
+        catch(IOException e){
+            System.out.println("Erro no carregamento do arquivo" + fileName);
+        }
     }
     
     /**
      * Carrega a blacklist de um arquivo.
      */
-    public void loadBlackList(){
+    private void loadBlackList(){
         try{
-            BufferedReader file = new BufferedReader(new FileReader("teste.txt"));
+            BufferedReader file = new BufferedReader(new FileReader("blacklist.txt"));
             String word = file.readLine();
             while(word != null){
                 badWords.add(word);
                 word = file.readLine();
             }
             file.close();
-            badWords.print();
+            //badWords.print();
         }catch(IOException e){
             System.out.println("Erro na abertura do arquivo");
         }
@@ -43,5 +69,24 @@ public class FileProcessor
     
     public void update(String [] inputFiles){
         for(String file: inputFiles){}
+    }
+    
+    public class WordProcessor{
+        private String word;
+        private final char [] sequence = {'.', ',', ';', ':', '?', '!', '(', ')', '[', ']', '\'', '\"', '\\', ' '};
+        
+        public WordProcessor(String word){
+            this.word = word;
+        }
+        
+        public String prepareWord(){
+            if(word.equals(" ")) return "";
+            word = word.trim();
+            word = word.toLowerCase();
+            for(char caracter : sequence){
+                word = word.replace(caracter, '\0');
+            }
+            return word;
+        }
     }
 }
